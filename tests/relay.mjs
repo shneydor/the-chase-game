@@ -210,6 +210,25 @@ const rate = (published - before) / 4;
 rate <= 2 ? ok(`אין זרם קבוע (${rate.toFixed(2)} הודעות לשנייה — רק שינויים אמיתיים)`)
           : fail(`קצב השידור גבוה מדי: ${rate.toFixed(2)} הודעות לשנייה`);
 
+/* ממסר שלא עונה — חייב להיאמר, לא להסתובב לנצח על "מתחבר…" */
+console.log('\n▶ ממסר שלא נענה');
+const dead = await ctx.newPage();
+const deadUrl = `http://localhost:${PORT}/index.html?fast=1&relay=` + encodeURIComponent('http://localhost:1');
+await dead.goto(deadUrl, { waitUntil:'domcontentloaded' });
+await dead.waitForSelector('[data-dev="host"]', { state:'visible', timeout: 15000 });
+await dead.click('[data-dev="host"]');
+await dead.click('#f-next');
+await dead.waitForFunction(() => window.__chase.state.screen === 'join', null, { timeout: 15000 });
+await dead.click('#j-go');
+await dead.waitForFunction(() => window.__chase.state.screen === 'lobby', null, { timeout: 15000 });
+const told = await dead
+  .waitForFunction(() => window.__chase.Net.status === 'blocked'
+    && /לא מצליח להגיע/.test(document.querySelector('#lb-list').textContent), null, { timeout: 20000 })
+  .then(() => true).catch(() => false);
+told ? ok('ממסר שלא נענה נאמר במפורש, בלי להסתובב על "מתחבר…"')
+     : fail('הלובי לא דיווח שאי אפשר להגיע לממסר');
+await dead.close();
+
 errors.length ? fail('שגיאות: ' + errors.slice(0, 3).join(' | ')) : ok('אין שגיאות');
 
 await browser.close();

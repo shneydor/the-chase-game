@@ -2694,7 +2694,7 @@ Screens.start = {
    התשובה הנכונה נכנסת לשידור רק ברגע החשיפה.
    ============================================================ */
 const Net = {
-  room: null, ready: false, kind: null, code: null, err: null, status: 'off', _ends: null,
+  room: null, ready: false, kind: null, code: null, err: null, status: 'off', _ends: null, _dl: null,
   _st: new Set(),
 
   async init(){
@@ -2721,14 +2721,30 @@ const Net = {
     catch(e){ this.room = null; this.ready = false; return false; }
     this.kind = 'relay'; this.code = code; this.ready = true;
     this.hook();
+    this.deadline();
     return true;
+  },
+
+  /* ערוץ שלא מצליח להתחבר נראה בדיוק כמו ערוץ שעוד רגע יתחבר, ולכן
+     אחרי כמה שניות בלי חיבור אומרים את זה במפורש במקום להסתובב לנצח. */
+  deadline(){
+    clearTimeout(this._dl);
+    this._dl = setTimeout(() => {
+      let up = false;
+      try { up = this.room && this.room.connected(); } catch(e){}
+      if (!up) this.setStatus('blocked');
+    }, CONNECT_WAIT);
   },
 
   /* מצב החיבור — כדי שהלובי לא יציג רשימה ריקה בלי הסבר */
   hook(){
     try {
       this.room.onConnection(
-        ok => this.setStatus(ok ? 'online' : 'connecting'),
+        ok => {
+          this.setStatus(ok ? 'online' : 'connecting');
+          /* ניתוק קצר הוא דבר רגיל — נותנים לו את אותה שהות לחזור */
+          if (ok) clearTimeout(this._dl); else if (this.kind === 'relay') this.deadline();
+        },
         e  => { this.err = (e && e.code) || 'error'; this.setStatus('blocked'); }
       );
       this.setStatus(this.room.connected() ? 'online' : 'connecting');
@@ -2846,7 +2862,7 @@ function relayBase(){
    המלא, עונה מיד למי שמצטרף, ופועם כל 20 שניות כדי להישאר ברשימה.
    משדרים רק כשמשהו באמת השתנה — ממסר חינמי לא סובל זרם קבוע.
    ============================================================ */
-const HEARTBEAT = 20000, PEER_TTL = 60000, MIN_GAP = 700;
+const HEARTBEAT = 20000, PEER_TTL = 60000, MIN_GAP = 700, CONNECT_WAIT = 8000;
 
 function RelayTransport(base, code){
   const url = String(base).replace(/\/+$/, '') + '/chase-' + code.toLowerCase();
@@ -3099,8 +3115,10 @@ function lobbyHtml(){
       ${dupes.length ? `<p class="text-sm font-bold" style="color:#fca5a5">
         ⚠ שני מכשירים בחרו ${dupes.map(r => esc(ROLE_META[r].name)).join(' ו')}.
         אחד מהם צריך להחליף תפקיד, אחרת המשחק יתבלבל.</p>` : ''}
-      ${Net.status === 'blocked' ? `<p class="muted text-sm">
-        הדפדפן הזה לא הצליח להתחבר. בדקו שכל המכשירים פתחו את אותה כתובת ואת אותו קוד.</p>` : ''}
+      ${Net.status === 'blocked' ? `<p class="text-sm" style="color:#fca5a5">
+        המכשיר הזה לא מצליח להגיע לשרת שמחבר בין המכשירים. בדקו שיש לו אינטרנט;
+        אם יש, ייתכן שהרשת חוסמת את השירות — נסו רשת אחרת או חיבור סלולרי.
+        בינתיים אפשר לשחק ב"מסך אחד", שזה המשחק המלא.</p>` : ''}
     </div>`;
 }
 
