@@ -210,6 +210,49 @@ const rate = (published - before) / 4;
 rate <= 2 ? ok(`אין זרם קבוע (${rate.toFixed(2)} הודעות לשנייה — רק שינויים אמיתיים)`)
           : fail(`קצב השידור גבוה מדי: ${rate.toFixed(2)} הודעות לשנייה`);
 
+/* חזרה ללובי באמצע משחק — כולם חוזרים יחד, בלי להקיש קוד שוב */
+console.log('\n▶ חזרה ללובי וקוד חדש');
+await host.click('#btn-quit');                 // שלב ראשון: בטוח?
+await host.click('#btn-quit');                 // שלב שני: יוצאים
+await host.waitForFunction(() => window.__chase.state.screen === 'lobby', null, { timeout: 15000 })
+  .then(() => ok('המנחה חזר ללובי באמצע משחק'))
+  .catch(() => fail('המנחה לא חזר ללובי'));
+
+const stillSame = await host.evaluate(() => window.__chase.Net.code);
+stillSame === CODE ? ok('הקוד נשאר אותו קוד — אף אחד לא צריך להקיש מחדש')
+                   : fail('הקוד השתנה ל-' + stillSame);
+
+const backInLobby = await screen
+  .waitForFunction(() => {
+    const el = document.querySelector('#proj-lb');
+    return !!el && el.textContent.includes('מי מחובר');
+  }, null, { timeout: 15000 })
+  .then(() => true).catch(() => false);
+backInLobby ? ok('מסך ההקרנה חזר להציג את הלובי מעצמו')
+            : fail('ההקרנה נשארה על מסך המשחק');
+
+const cleared = await host.evaluate(() => {
+  const s = window.__chase.state;
+  return s.teamBank === 0 && s.current === 0 && s.players.every(p => p.bank === 0 && p.status === 'pending');
+});
+cleared ? ok('המשחק הקודם נוקה — הלובי מוביל למשחק חדש')
+        : fail('נשארו שאריות מהמשחק הקודם');
+
+// לובי חדש = קוד חדש, בשתי לחיצות
+await host.click('#lb-new');
+await host.click('#lb-new');
+const rolled = await host
+  .waitForFunction(c => window.__chase.Net.code && window.__chase.Net.code !== c, CODE, { timeout: 15000 })
+  .then(() => host.evaluate(() => window.__chase.Net.code)).catch(() => null);
+(rolled && rolled.length === 4 && rolled !== CODE)
+  ? ok(`"לובי חדש" הנפיק קוד אחר (${CODE} → ${rolled})`)
+  : fail('הקוד לא התחלף: ' + rolled);
+
+const chipShows = await host.evaluate(() => document.querySelector('#lb-list').textContent);
+(rolled && chipShows.includes(rolled)) ? ok('הקוד החדש מוצג בלובי')
+                                       : fail('הלובי לא מציג את הקוד החדש');
+
+
 /* ממסר שלא עונה — חייב להיאמר, לא להסתובב לנצח על "מתחבר…" */
 console.log('\n▶ ממסר שלא נענה');
 const dead = await ctx.newPage();

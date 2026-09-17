@@ -1180,7 +1180,13 @@ function mountTopBar(){
     let armed = false, revert = null;
     const reset = () => { armed = false; q.textContent = 'יציאה'; q.classList.remove('btn-bad'); };
     q.addEventListener('click', () => {
-      if (armed){ clearTimeout(revert); Sound.musicStop(); state.step = 0; go('start'); return; }
+      if (armed){
+        clearTimeout(revert);
+        Sound.musicStop();
+        /* כשיש מכשירים מחוברים, יציאה מחזירה את כולם ללובי ולא מפרקת את החיבור */
+        if (canLobby()){ resetGame(); return go('lobby'); }
+        state.step = 0; go('start'); return;
+      }
       armed = true;
       q.textContent = 'בטוח? לחצו שוב';
       q.classList.add('btn-bad');
@@ -2335,7 +2341,9 @@ Screens.results = {
     <div class="grid gap-2 mb-4">${rows}</div>
     <div class="row justify-center">
       <button class="btn btn-gold btn-xl" id="again">🔁 משחק נוסף</button>
-      <button class="btn btn-lg" id="menu">לתפריט הראשי</button>
+      ${canLobby()
+        ? '<button class="btn btn-lg" id="tolobby">👥 חזרה ללובי</button>'
+        : '<button class="btn btn-lg" id="menu">לתפריט הראשי</button>'}
     </div>`;
   },
   mount(data){
@@ -2348,7 +2356,11 @@ Screens.results = {
       state.current = 0; state.teamBank = 0; buildPool();
       go('ready');
     });
-    $('#menu').addEventListener('click', () => { state.step = 0; go('start'); });
+    const menu = $('#menu');
+    if (menu) menu.addEventListener('click', () => { state.step = 0; go('start'); });
+    /* אותו קוד, אותם מכשירים — כולם חוזרים ללובי בלי להקיש שוב */
+    const tolobby = $('#tolobby');
+    if (tolobby) tolobby.addEventListener('click', () => { resetGame(); go('lobby'); });
   }
 };
 
@@ -2717,8 +2729,11 @@ const Net = {
   join(code){
     if (this.kind === 'relay' && this.code === code) return true;
     if (!this.canCode() || !code) return false;
+    const old = this.kind === 'relay' ? this.room : null;
     try { this.room = RelayTransport(relayBase(), code); }
-    catch(e){ this.room = null; this.ready = false; return false; }
+    catch(e){ this.room = old; return false; }
+    /* הערוץ הקודם נסגר — אחרת הוא ממשיך לפעום ומי שנשאר בו עוד רואה אותנו */
+    if (old && old.close){ try { old.close(); } catch(e){} }
     this.kind = 'relay'; this.code = code; this.ready = true;
     this.hook();
     this.deadline();
@@ -3024,6 +3039,20 @@ function buildSnap(){
   return snap;
 }
 
+/** מנקה את המשחק שהסתיים, כדי שהלובי יוביל למשחק חדש ולא לשאריות */
+function resetGame(){
+  Sound.musicStop();
+  state.players.forEach(p => { p.bank = 0; p.status = 'pending'; p.won = 0; p.offer = null; });
+  state.current = 0; state.teamBank = 0; state.outcome = null;
+  state.cash = null; state.chase = null; state.final = null;
+  Judge.hide();
+}
+
+/** האם המכשיר הזה יכול להחזיר את כולם ללובי */
+function canLobby(){
+  return state.device === 'host' && Net.ready;
+}
+
 let snapTimer = null;
 function startBroadcast(){
   if (snapTimer || state.device !== 'host') return;
@@ -3257,6 +3286,12 @@ Screens.lobby = {
         <input class="field" id="lb-name" maxlength="14" placeholder="למשל: הטלפון של דני" value="${esc(deviceName())}">
       </label>
 
+      ${isHost && Net.code ? `
+      <div class="spread">
+        <span class="muted text-sm">רוצים להתחיל מחדש עם חבורה אחרת?</span>
+        <button class="btn btn-icon" id="lb-new">🔄 לובי חדש</button>
+      </div>` : ''}
+
       <div class="frow">
         <span></span>
         ${isHost
@@ -3277,6 +3312,30 @@ Screens.lobby = {
 
     const go_ = $('#lb-go');
     if (go_) go_.addEventListener('click', () => { Sound.init(); state.step = 1; go('start'); });
+
+    /* לובי חדש = קוד חדש. זה מנתק את מי שכבר מחובר, ולכן שואלים פעמיים
+       ואומרים בדיוק מה יקרה — בדיוק כמו כפתור היציאה. */
+    const nw = $('#lb-new');
+    if (nw){
+      let armed = false, revert = null;
+      const reset = () => { armed = false; nw.textContent = '🔄 לובי חדש'; nw.classList.remove('btn-bad'); };
+      nw.addEventListener('click', () => {
+        if (!armed){
+          armed = true;
+          nw.textContent = 'כולם יצטרכו להקיש קוד חדש — לחצו שוב';
+          nw.classList.add('btn-bad');
+          Sound.init(); Sound.beep();
+          revert = addTimeout(reset, 4000);
+          return;
+        }
+        clearTimeout(revert);
+        const code = newCode();
+        if (!Net.join(code)){ reset(); return; }
+        rememberCode(code);
+        resetGame();
+        go('lobby');
+      });
+    }
 
     /* מכשיר שאינו המנחה עובר למסך שלו ברגע שמתחיל משחק */
     if (state.device !== 'host'){
