@@ -427,6 +427,7 @@ body[data-screen=finalChaser] #ladder{flex-direction:row;gap:3px;overflow-x:auto
 body[data-screen=finalChaser] #ladder .step{flex:1;min-width:18px;height:26px;border-radius:0;padding:2px;justify-content:center}
 body[data-screen=finalChaser] #ladder [data-mark]{display:none}
 body[data-screen=finalChaser] #ladder .caught{background:linear-gradient(#e11a36,#88061e)}
+.music-controls{position:relative;font-size:14px}.music-controls summary{cursor:pointer;padding:10px;border:1px solid #486b94;border-radius:8px;list-style:none}.music-settings{position:absolute;z-index:80;left:0;top:100%;width:min(270px,80vw);padding:18px;background:#0b1930;border:1px solid #739ccc;border-radius:8px;box-shadow:0 12px 35px #0009}.music-settings label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.music-settings input{width:150px;accent-color:#8cdeff}.music-settings [role=status]{display:block;font-size:12px;margin-top:8px;color:#c9dbf4}.flow>header>.row{flex-wrap:wrap}.music-controls summary:focus-visible{outline:2px solid #9edfff}
 </style>
 </head>
 <body>
@@ -801,11 +802,18 @@ const Store = {
 };
 
 /* ============================================================
-   מנוע קול — הכול מסונתז ב-Web Audio API, ללא קבצים חיצוניים
+   מנוע קול — מוזיקת Suno ואפקטים מסונתזים
    ============================================================ */
 const Sound = {
   ctx:null, master:null, muted: !!Store.get(KEY_SETTINGS, {}).muted,
-  _music:null,
+  _music:null, musicKey:null, musicPaused:false,
+  musicVolume: clamp(Number(Store.get(KEY_SETTINGS, {}).musicVolume ?? .28), 0, 1),
+  effectsVolume: clamp(Number(Store.get(KEY_SETTINGS, {}).effectsVolume ?? .55), 0, 1),
+  tracks: {
+    opening:'assets/music/opening.m4a', cash:'assets/music/cash.m4a',
+    chase:'assets/music/chase.m4a', finalTeam:'assets/music/final-team.m4a',
+    finalChaser:'assets/music/final-chaser.m4a'
+  },
 
   init(){
     if (this.ctx) { this.resume(); return; }
@@ -814,15 +822,16 @@ const Sound = {
     try {
       this.ctx = new AC();
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : 0.55;
+      this.master.gain.value = this.muted ? 0 : this.effectsVolume;
       this.master.connect(this.ctx.destination);
     } catch(e){ this.ctx = null; }
   },
   resume(){ if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
   setMuted(m){
     this.muted = m;
+    if (this._music) this._music.muted = m;
     const s = Store.get(KEY_SETTINGS, {}); s.muted = m; Store.set(KEY_SETTINGS, s);
-    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.55, this.ctx.currentTime, 0.02);
+    if (this.master) this.master.gain.setTargetAtTime(m ? 0 : this.effectsVolume, this.ctx.currentTime, 0.02);
   },
 
   /* צליל בסיסי */
@@ -889,36 +898,47 @@ const Sound = {
     this.tone({ freq: 330, dur: .55, type:'square', gain: .18, delay: .3 });
   },
 
-  /* מוזיקת מתח — דרון נמוך + פעימה קצבית */
-  musicStart(intensity = 1){
-    if (!this.ctx || this.muted || this._music) return;
-    const g = this.ctx.createGain();
-    g.gain.value = .16;
-    g.connect(this.master);
-    const drone = [55, 82.4].map(f => {
-      const o = this.ctx.createOscillator();
-      o.type = 'sawtooth'; o.frequency.value = f;
-      const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 220;
-      const og = this.ctx.createGain(); og.gain.value = .35;
-      o.connect(lp); lp.connect(og); og.connect(g); o.start();
-      return o;
-    });
-    const beat = setInterval(() => {
-      if (this.muted) return;
-      this.tone({ freq: 110, dur: .12, type:'square', gain: .07, dest: g });
-    }, Math.max(320, 620 / intensity));
-    this._music = { g, drone, beat };
+  /* Media files stay separate from the synthesized answer/countdown effects. */
+  setVolume(kind, value){
+    const key = kind === 'music' ? 'musicVolume' : 'effectsVolume';
+    this[key] = clamp(Number(value) || 0, 0, 1);
+    Store.set(KEY_SETTINGS, {...Store.get(KEY_SETTINGS, {}), [key]:this[key]});
+    if (this._music) this._music.volume = this.musicVolume;
+    if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : this.effectsVolume, this.ctx.currentTime, .02);
   },
+  musicStart(key){
+    if (!this.tracks[key]) return;
+    if (this.musicKey === key && this._music) return;
+    this.musicStop();
+    const audio = new Audio(this.tracks[key]);
+    this._music = audio; this.musicKey = key; this.musicPaused = false;
+    audio.loop = key !== 'opening'; audio.preload = 'auto';
+    audio.volume = this.musicVolume; audio.muted = this.muted;
+    audio.addEventListener('error', () => {
+      if (this._music === audio) this.musicStatus('המוזיקה לא נטענה. אפשר להמשיך לשחק.');
+    });
+    this.musicResume();
+  },
+  musicStatus(text){
+    document.querySelectorAll('[data-music-status]').forEach(el => { el.textContent = text; });
+  },
+  musicResume(){
+    const audio = this._music;
+    if (!audio || this.musicPaused || audio.ended) return;
+    audio.play().then(() => {
+      if (this._music === audio) this.musicStatus('');
+    }).catch(() => {
+      if (this._music === audio) this.musicStatus('לחצו על הפעלת מוזיקה כדי לשמוע.');
+    });
+  },
+  musicPause(){ this.musicPaused = true; if (this._music) this._music.pause(); },
+  musicContinue(){ this.musicPaused = false; this.musicResume(); },
   musicStop(){
-    if (!this._music) return;
-    const { g, drone, beat } = this._music;
-    clearInterval(beat);
-    try {
-      g.gain.setTargetAtTime(0.0001, this.ctx.currentTime, .12);
-      drone.forEach(o => o.stop(this.ctx.currentTime + .5));
-    } catch(e){}
-    this._music = null;
+    const audio = this._music;
+    this._music = null; this.musicKey = null; this.musicPaused = false;
+    if (audio){ audio.pause(); audio.removeAttribute('src'); audio.load(); }
   }
+
 };
 
 /* ============================================================
@@ -1061,6 +1081,7 @@ function nextQuestion(){
 const Screens = {};
 function go(screen, data){
   clearAllTimers();
+  Sound.musicStop();
   OVR().innerHTML = '';
   state.screen = screen;
   document.body.dataset.screen = screen;
@@ -1181,6 +1202,18 @@ const Judge = {
 };
 
 
+function musicControls(){
+  return `<details class="music-controls"><summary>♫ צליל</summary><div class="music-settings">
+    <label>מוזיקה <input data-volume="music" aria-label="עוצמת המוזיקה" type="range" min="0" max="100" value="${Math.round(Sound.musicVolume*100)}"></label>
+    <label>אפקטים <input data-volume="effects" aria-label="עוצמת האפקטים" type="range" min="0" max="100" value="${Math.round(Sound.effectsVolume*100)}"></label>
+    <button class="btn" data-music-resume>הפעלת מוזיקה</button>
+    <span data-music-status role="status"></span>
+  </div></details>`;
+}
+function mountMusicControls(){
+  bind('[data-volume]', 'input', e => Sound.setVolume(e.target.dataset.volume, e.target.value/100));
+  bind('[data-music-resume]', 'click', () => { Sound.init(); Sound.musicResume(); });
+}
 function topBar(title, sub){
   return `
   <header class="spread mb-4">
@@ -1189,17 +1222,19 @@ function topBar(title, sub){
       <h1 class="logo text-2xl sm:text-3xl font-black">${esc(title)}</h1>
     </div>
     <div class="row">
+      ${musicControls()}
       <button class="btn" id="btn-sound" aria-label="הפעלה וכיבוי של הקול">${Sound.muted ? '🔇' : '🔊'}</button>
       <button class="btn" id="btn-quit">יציאה</button>
     </div>
   </header>`;
 }
 function mountTopBar(){
+  mountMusicControls();
   const s = $('#btn-sound');
   if (s) s.addEventListener('click', () => {
     Sound.init(); Sound.setMuted(!Sound.muted);
     s.textContent = Sound.muted ? '🔇' : '🔊';
-    if (Sound.muted) Sound.musicStop();
+    Sound.musicResume();
   });
   /* יציאה בשני שלבים במקום חלונית מערכת — עובד גם במסגרת מוגבלת וגם בטלפון */
   const q = $('#btn-quit');
@@ -1601,6 +1636,7 @@ Screens.cash = {
       '3':        () => judge('pass')
     });
 
+    Sound.musicStart('cash');
     tally(); draw(); clock.start();
   }
 };
@@ -1959,7 +1995,7 @@ Screens.chase = {
       KeyA:   () => playerPick(0), KeyS:   () => playerPick(1), KeyD:   () => playerPick(2)
     });
 
-    Sound.musicStart(1);
+    Sound.musicStart('chase');
     addCleanup(() => Sound.musicStop());
     ask();
   }
@@ -2119,7 +2155,7 @@ Screens.finalTeam = {
       '1': () => judge('ok'), '2': () => judge('no'), '3': () => judge('pass')
     });
 
-    Sound.musicStart(1.4);
+    Sound.musicStart('finalTeam');
     addCleanup(() => Sound.musicStop());
     draw(); clock.start();
   }
@@ -2248,7 +2284,7 @@ Screens.finalChaser = {
       busy = true;
       ['#c-ok', '#c-no'].forEach(s => { const b = $(s); if (b) b.disabled = true; });
       if (ok) Judge.reveal('ok');
-      else { Judge.hide(); clock.pause(); }
+      else { Judge.hide(); clock.pause(); Sound.musicPause(); }
 
       if (ok){
         f.chaserSteps++;
@@ -2305,6 +2341,7 @@ Screens.finalChaser = {
           f.pushback = null;
           if (over) return;
           clock.resume();
+          Sound.musicContinue();
           ask();
         }, T(1100));
       };
@@ -2326,7 +2363,7 @@ Screens.finalChaser = {
       $('#c-no').addEventListener('click', () => verdict(false));
     }
 
-    Sound.musicStart(2);
+    Sound.musicStart('finalChaser');
     addCleanup(() => Sound.musicStop());
     clock.start();
     ask();
@@ -2455,6 +2492,8 @@ Screens.start = {
           <h1 class="logo text-3xl sm:text-5xl">הצ׳ייסר</h1>
         </div>
         <div class="row">
+          ${musicControls()}
+          <button class="btn" id="f-opening">▶ פתיח</button>
           <button class="btn btn-icon" id="f-sound" aria-label="קול">${Sound.muted ? '🔇' : '🔊'}</button>
           <button class="btn btn-icon" id="f-rules">📖 איך משחקים</button>
         </div>
@@ -2595,10 +2634,13 @@ Screens.start = {
     const warn = msg => { const w = $('#f-warn'); w.textContent = msg; w.classList.remove('hidden'); };
 
     $('#f-rules').addEventListener('click', () => go('rules'));
+    mountMusicControls();
+    $('#f-opening').addEventListener('click', () => { Sound.init(); Sound.musicStop(); Sound.musicStart('opening'); });
     const sb = $('#f-sound');
     sb.addEventListener('click', () => {
       Sound.init(); Sound.setMuted(!Sound.muted);
       sb.textContent = Sound.muted ? '🔇' : '🔊';
+      Sound.musicResume();
     });
     const back = $('#f-back');
     if (back) back.addEventListener('click', () => { state.step = i - 1; go('start'); });
@@ -2736,6 +2778,7 @@ Screens.start = {
 
     Sound.offer();
     go('ready');
+    Sound.musicStart('opening');
   }
 };
 </script>
@@ -3700,7 +3743,7 @@ window.addEventListener('DOMContentLoaded', () => {
   state.step = 0;
   go('start');
   /* פתיחת הקול מחייבת מחוות משתמש — נתפוס את הראשונה שתגיע */
-  const unlock = () => { Sound.init(); Sound.resume(); };
+  const unlock = () => { Sound.init(); Sound.resume(); Sound.musicResume(); };
   window.addEventListener('pointerdown', unlock, { once: true });
   window.addEventListener('keydown', unlock, { once: true });
 

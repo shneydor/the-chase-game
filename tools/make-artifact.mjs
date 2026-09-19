@@ -11,19 +11,13 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
+import {embedAssets} from './embed-assets.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src  = path.join(root, 'index.html');
 const out  = process.argv[2] || path.join(root, '.artifact', 'chase-artifact.html');
 
-let html = fs.readFileSync(src, 'utf8').replace(/<link rel="preload"[^>]*>\s*/g, '');
-// Embed local artwork so exported artifacts keep their studio scenery.
-for (const name of ['studio', 'victory']) {
-  html = html.replace("--" + name + "-art:url('assets/" + name + ".png');", '');
-  html = html.replaceAll('var(--' + name + '-art)', "url('assets/" + name + ".png')");
-  const data = fs.readFileSync(path.join(root, 'assets', name + '.png')).toString('base64');
-  html = html.replaceAll('assets/' + name + '.png', 'data:image/png;base64,' + data);
-}
+let html = embedAssets(fs.readFileSync(src, 'utf8'), root);
 const must = (cond, msg) => { if (!cond){ console.error('✗ ' + msg); process.exit(1); } };
 
 // 1. מעטפת המסמך — מסופקת על ידי Artifact
