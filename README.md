@@ -16,7 +16,7 @@ python3 -m http.server 8000
 ```
 
 **הגרסה באינטרנט (זו שמאפשרת לשחק בכמה מכשירים):**
-<https://raw.githack.com/leviofir800-lgtm/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html>
+<https://raw.githack.com/shneydor/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html>
 
 זה הקישור שאפשר לשלוח לכל אחד — בלי חשבון, בלי התקנה ובלי הגדרות. githack מגיש את הקובץ
 ישירות מהריפו הציבורי ותמיד מהגרסה האחרונה שבענף, כך שאין מה לפרסם ואין מה לתחזק.
@@ -223,3 +223,10 @@ node tests/relay.mjs    # לובי וסנכרון עם קוד הצטרפות
 
 הבדיקה טוענת את המשחק עם `?fast=1` — דגל פיתוח שמקצר את כל הטיימרים
 (8 שניות לסבב הצבירה במקום 60). שימושי גם כשרוצים לבדוק שינוי ידנית בלי לחכות.
+
+
+## Illuminated studio redesign
+
+The game now includes generated studio and victory scenery under `assets/`, with a live tilted chase board and a broadcast-style question strip. Keep the assets folder beside `index.html` when hosting or downloading the repository. The game remains playable without the images; `tools/make-artifact.mjs` embeds them in an exported artifact.
+
+The redesign also fixes family-question selection across setup screens, premature pushback answer reveals, spectator pushback rendering and banked-prize totals. Asset prompts and generator provenance are in `assets/README.md`. Run `node tests/studio.mjs` for the new regression coverage, alongside the existing smoke, lobby and relay suites. The relay still uses the existing public-topic protocol; host authentication was not redesigned.

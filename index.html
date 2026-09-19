@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#04060e">
+<meta name="theme-color" content="#020718">
+<link rel="preload" as="image" href="assets/studio.png">
 <meta name="description" content="הצ'ייסר — משחק טריוויה משפחתי בהשראת התוכנית, ל-1 עד 4 שחקנים.">
 <title>הצ'ייסר — משחק טריוויה משפחתי</title>
 
@@ -20,6 +21,7 @@
    הצ'ייסר — studio theme
    ============================================================ */
 :root{
+  --studio-art:url('assets/studio.png'); --victory-art:url('assets/victory.png');
   color-scheme:dark;
   --bg:#04060e; --panel-1:rgba(19,28,54,.92); --panel-2:rgba(10,16,32,.92);
   --gold:#f5c518; --gold-2:#ffe27a; --player:#38bdf8; --chaser:#ef4444;
@@ -402,6 +404,29 @@ button,input,select,textarea{font-family:inherit}
   .lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
   .lg\:col-span-2{grid-column:span 2 / span 2}
 }
+body[data-screen=chase] #bgfx{background:#020718}
+/* Illuminated studio — generated scenery, live accessible game controls. */
+:root{--bg:#020615;--panel-1:rgba(10,25,51,.95);--panel-2:rgba(3,10,26,.97);--gold:#b3eaff;--gold-2:#e1f7ff;--player:#61d5ff;--line:rgba(127,185,242,.3);--muted:#b1c4df}
+#bgfx{background:linear-gradient(180deg,rgba(0,3,14,.25),rgba(0,3,14,.8)),var(--studio-art) center center/cover no-repeat,#020817}#bgfx:after{display:none}
+.wrap{max-width:1240px}.logo{background:linear-gradient(#fff,#d8f3ff 60%,#75bbff);background-clip:text;-webkit-background-clip:text;filter:drop-shadow(0 2px 15px #185eab80)}
+.panel{border-radius:5px;box-shadow:0 15px 35px #0005,inset 0 1px #abdbff15}.btn,.field,.card-pick,.opt{border-radius:4px}.btn-gold{background:linear-gradient(#e6f7ff,#89cef5);color:#03152a;border-color:#d3f3ff;box-shadow:0 8px 22px #028cff30}.btn-gold:hover:not(:disabled){background:linear-gradient(#fff,#b7e5ff)}
+.card-pick.on,label.pick.on{background:#16447699;border-color:#99e3ff;box-shadow:0 0 0 2px #67d1ff30}.flow{padding-top:35px}.flow>header{padding:16px 0 24px}.flow h1{font-size:clamp(2.8rem,7vw,5rem)}.flow .panel{backdrop-filter:blur(10px)}.fstep.on{background:#9edfff!important;color:#06152a!important}.fsteps{gap:6px}.card-pick:hover{border-color:#a3d8ff}.chip{border-radius:3px}.eyebrow{letter-spacing:.08em}
+.chase-layout{display:flex;flex-direction:column;gap:0;border:1px solid #608aba;box-shadow:0 20px 55px #0007}.chase-stage{position:relative;isolation:isolate;height:clamp(320px,43vh,440px);min-height:320px;background:linear-gradient(#01071710,#00071425),var(--studio-art) center/cover no-repeat,#020b24;overflow:hidden;border:0;border-radius:0;padding:18px 25px}.chase-stage>.spread:first-child{position:relative;z-index:2}.chase-stage>.spread:last-child{position:absolute;bottom:15px;left:25px;right:25px;z-index:2}.chase-stage .chip{background:#03152bdf;border-color:#7fc7ff66}.chase-stage .board{width:clamp(250px,28vw,330px);height:clamp(240px,34vh,330px);min-height:0;display:flex;flex-direction:column;gap:2px;margin:5px auto 0;padding:7px;background:#030818;border:4px solid #eefcff;border-radius:3px;transform:perspective(1000px) rotateX(21deg) rotateZ(10deg) skewX(-18deg);transform-origin:50% 50%;box-shadow:0 7px 0 #7997b5,0 15px 0 #092750,0 28px 34px #000b,0 0 14px #79d3ff88;overflow:visible}.chase-stage .slot{flex:1;min-height:0;display:grid;grid-template-columns:1fr;grid-template-rows:1fr;align-items:center;position:relative;border-radius:0;border:0;border-bottom:1px solid #4b6793;background:linear-gradient(#111e35,#030b19 70%,#12223b);padding:0;color:transparent;font-size:0}.chase-stage .slot>div:not(.lane){font-size:0;pointer-events:none}.chase-stage .slot.territory,.chase-stage .slot.chaserrow{background:linear-gradient(#7d0016,#ea1937 50%,#7a001d)}.chase-stage .slot.hot{background:linear-gradient(#080e62,#1649ec 55%,#071553);box-shadow:inset 0 1px #768aff,inset 0 -1px #5578ed}.chase-stage .slot.home{background:linear-gradient(#056342,#0bba67 55%,#04552f);border:0;color:#021b0d}.chase-stage .slot.home>div:not(.lane){font-size:25px;font-weight:900;text-align:center;color:#02190c}.chase-stage .lane{position:absolute;inset:0;min-height:0;width:auto!important;justify-content:center!important;align-items:center!important;pointer-events:none}.chase-stage .tok{font-size:24px;font-weight:900;background:none;color:white;border-radius:0;padding:0;box-shadow:none;border:0;text-shadow:0 1px 5px #001844;max-width:100%;white-space:nowrap}.chase-stage .tok-c{font-size:14px;font-weight:600}.chase-stage .tok-short{display:none}.chase-stage .tok-full{display:inline}.chase-stage .lbl-short{display:none}.chase-stage .lbl-full{display:inline}
+.broadcast-console{padding:16px 24px 20px;background:linear-gradient(#061733,#02081a);border-top:1px solid #99cfff}.broadcast-console>.panel{background:linear-gradient(#132b4c,#050d1d);box-shadow:none;border-radius:0;text-align:center}.broadcast-console .qtext{font-size:clamp(1.4rem,3vw,2.4rem)}.broadcast-console .panel>.spread{justify-content:space-between}.broadcast-console #opts{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.broadcast-console .opt{min-height:62px;padding:12px 16px;background:linear-gradient(#183259,#06132b);border:1px solid #6387b1;gap:10px}.broadcast-console .opt .badge{background:none;border-radius:0;border-inline-end:1px solid #6583a7;width:25px;padding-inline-end:10px;font-size:16px}.broadcast-console .opt .who{flex-wrap:wrap}.broadcast-console .opt.pick-p{background:linear-gradient(#915b23,#552805);border-color:#ffdb9b}.broadcast-console .opt.right{background:linear-gradient(#14753b,#07361c)!important}.broadcast-console #hint{font-size:12px;line-height:1.6}.broadcast-console #hostpanel{text-align:right}
+body[data-screen=offer] #app>.panel,body[data-screen=ready] #app>.panel,body[data-screen=finalIntro] #app>.panel{background:linear-gradient(#071b3bc9,#02071ce8);padding-block:35px}body[data-screen=offer] .card-pick{border-top:3px solid #a6e6ff;background:linear-gradient(#152f57,#040d20);text-align:center;box-shadow:0 15px 35px #0006}body[data-screen=offer] [data-offer=high]{border-top-color:#fc4866;background:linear-gradient(#502033,#190b19)}body[data-screen=offer] [data-offer=low]{border-top-color:#5bdfb3;background:linear-gradient(#0c403b,#071c23)}
+body[data-screen=results][data-outcome=team] #bgfx{background:linear-gradient(#02081922,#02081988),var(--victory-art) center/cover no-repeat,#020817}body[data-screen=results] #app>.panel{background:#021129b8;backdrop-filter:blur(4px)}.proj{background:linear-gradient(#01061365,#010615bf),var(--studio-art) center/cover no-repeat,#020617}.proj-chase{display:grid;grid-template-columns:1.15fr 1fr!important;align-items:stretch}.proj-chase .chase-stage{height:100%;min-height:0;display:grid;place-items:center;padding:10px;background:none}.proj-chase .board{width:65%;height:80%;margin:0}.proj-chase .proj-q-wrap{background:linear-gradient(#112449eb,#030c20eb);padding:22px;border:1px solid #698db8}.proj-chase .proj-opts{display:grid;gap:10px}.proj-chase .opt{background:#11233f;font-size:clamp(16px,2.6vmin,27px)}.proj .slot.home>div:not(.lane){font-size:clamp(18px,3vmin,30px)}.proj .chase-stage .tok{font-size:clamp(16px,3.2vmin,32px)}.proj .chase-stage .tok-c{font-size:clamp(12px,2vmin,22px)}
+@media(max-width:700px){.wrap{padding:12px}.flow{padding-top:0}.flow>header{padding:8px 0}.flow h1{font-size:2.8rem}.chase-stage{height:330px;min-height:330px;padding:10px;background-position:center}.chase-stage .board{width:235px;height:245px;gap:2px;padding:4px;border-width:3px;margin:12px auto 0;transform:perspective(900px) rotateX(15deg) rotateZ(8deg) skewX(-16deg)}.chase-stage .tok{font-size:19px}.chase-stage .tok-c{font-size:11px}.chase-stage .slot.home>div:not(.lane){font-size:18px}.chase-stage>.spread:last-child{left:10px;right:10px;bottom:8px}.chase-stage .chip{font-size:10px;padding:3px 5px}.broadcast-console{padding:10px}.broadcast-console #opts{grid-template-columns:1fr}.broadcast-console .opt{min-height:52px;font-size:17px}.broadcast-console .qtext{font-size:23px}.broadcast-console #hint{font-size:11px}.proj-chase{grid-template-columns:1fr!important;grid-template-rows:minmax(190px,.8fr) minmax(0,1fr)}.proj-chase .board{width:180px;height:190px}.proj-chase .chase-stage{min-height:0}.proj-chase .proj-q-wrap{padding:10px;gap:8px}.proj-chase .opt{min-height:38px;padding:6px 10px}.proj-chase .proj-q{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.chase-stage .board,.chase-stage .tok{animation:none!important;transition:none!important}}
+
+
+body[data-screen=finalChaser] .split-narrow{grid-template-columns:1fr}
+body[data-screen=finalChaser] .split-narrow>.panel{border-top:3px solid #a2e8ff;border-bottom:3px solid #a2e8ff;background:linear-gradient(90deg,#400617,#051431 45%,#061e44);border-radius:4px 4px 40% 10%/4px 4px 12px 12px}
+body[data-screen=finalChaser] .split-narrow>.panel .chip{background:none;border:0;font-size:17px;display:flex;flex-direction:column}
+body[data-screen=finalChaser] .split-narrow>.panel .chip .num{font-size:clamp(42px,8vw,80px);line-height:1.05;color:white}
+body[data-screen=finalChaser] #ladder{flex-direction:row;gap:3px;overflow-x:auto;direction:ltr;padding-block:12px}
+body[data-screen=finalChaser] #ladder .step{flex:1;min-width:18px;height:26px;border-radius:0;padding:2px;justify-content:center}
+body[data-screen=finalChaser] #ladder [data-mark]{display:none}
+body[data-screen=finalChaser] #ladder .caught{background:linear-gradient(#e11a36,#88061e)}
 </style>
 </head>
 <body>
@@ -1038,6 +1063,8 @@ function go(screen, data){
   clearAllTimers();
   OVR().innerHTML = '';
   state.screen = screen;
+  document.body.dataset.screen = screen;
+  document.body.dataset.outcome = (data && data.outcome) || '';
   const s = Screens[screen];
   APP().innerHTML = s.html(data);
   APP().scrollIntoView({ block:'start' });
@@ -1668,7 +1695,7 @@ Screens.chase = {
       const label = i === 0
         ? '<span class="lbl-full">הצ׳ייסר</span>'
         : (i === HOME
-            ? '<span class="lbl-full">🏠 הבית</span><span class="lbl-short">🏠</span>'
+            ? '<span class="lbl-full">הבנק</span><span class="lbl-short">בנק</span>'
             : String(i));
       slots += `<div class="slot ${cls}" data-slot="${i}">
                   <div class="lane lane-c"></div><div>${label}</div><div class="lane lane-p"></div>
@@ -1687,9 +1714,9 @@ Screens.chase = {
 
     return `
     ${topBar('המרדף האישי', esc(p.name) + ' · ' + state.chaser.title)}
-    <div class="grid gap-3 split">
+    <div class="chase-layout">
 
-      <div class="panel panel-pad">
+      <div class="panel panel-pad chase-stage">
         <div class="spread mb-2">
           <span class="chip chip-gold">על הכף: ${money(p.offer.prize)}</span>
           <span class="chip" id="qcount">שאלה 1</span>
@@ -1701,7 +1728,7 @@ Screens.chase = {
         </div>
       </div>
 
-      <div class="grid gap-3 content-start">
+      <div class="grid gap-3 content-start broadcast-console">
         <div class="panel panel-pad grid gap-3">
           <div class="spread">
             <span class="chip" id="qcat">—</span>
@@ -1732,23 +1759,29 @@ Screens.chase = {
     const slot = i => $(`[data-slot="${i}"]`);
     const tokP = document.createElement('div');
     tokP.className = 'tok tok-p'; tokP.id = 'tok-p';
-    tokP.innerHTML = `<span class="tok-full">${esc(p.name)}</span><span class="tok-short">🔵</span>`;
+    tokP.innerHTML = `<span class="tok-full">${money(st.prize)}</span><span class="tok-short">${money(st.prize)}</span>`;
+    tokP.setAttribute('aria-label', `${p.name}: ${money(st.prize)}`);
     const tokC = document.createElement('div');
     tokC.className = 'tok tok-c'; tokC.id = 'tok-c';
-    tokC.innerHTML = '<span class="tok-full">צ׳ייסר</span><span class="tok-short">😈</span>';
+    tokC.innerHTML = '<span class="tok-full">צ׳ייסר</span><span class="tok-short">צ׳ייסר</span>';
     slot(st.pos).querySelector('.lane-p').appendChild(tokP);
     slot(st.cpos).querySelector('.lane-c').appendChild(tokC);
 
     const gaps = () => {
       $('#cgap').textContent = st.pos - st.cpos;
       $('#pgap').textContent = HOME - st.pos;
-      $$('.slot').forEach(s => s.classList.toggle('hot', +s.dataset.slot === st.pos));
+      $$('[data-slot]').forEach(s => {
+        const pos = +s.dataset.slot;
+        s.classList.toggle('hot', pos === st.pos);
+        s.classList.toggle('territory', pos <= st.cpos);
+      });
     };
     const move = (who, to) => {
       const tok = who === 'p' ? tokP : tokC;
       const lane = who === 'p' ? '.lane-p' : '.lane-c';
       flipMove(tok, () => slot(to).querySelector(lane).appendChild(tok));
       tok.classList.remove('pop'); void tok.offsetWidth; tok.classList.add('pop');
+      gaps();
       who === 'p' ? Sound.stepPlayer() : Sound.stepChaser();
     };
     gaps();
@@ -2118,7 +2151,7 @@ Screens.finalChaser = {
           <span class="chip chip-chaser">צ׳ייסר: <b class="num" id="csteps">0</b></span>
         </div>
         <div class="ladder" id="ladder">${rungs}</div>
-        <div class="muted text-xs mt-2 text-center">הצ׳ייסר מטפס מלמטה למעלה</div>
+        <div class="muted text-xs mt-2 text-center">כל תשובה נכונה מקרבת את הצ׳ייסר אל היעד</div>
       </div>
 
       <div class="grid gap-3 content-start">
@@ -2214,7 +2247,8 @@ Screens.finalChaser = {
       if (busy || over) return;
       busy = true;
       ['#c-ok', '#c-no'].forEach(s => { const b = $(s); if (b) b.disabled = true; });
-      Judge.reveal(ok ? 'ok' : 'no');
+      if (ok) Judge.reveal('ok');
+      else { Judge.hide(); clock.pause(); }
 
       if (ok){
         f.chaserSteps++;
@@ -2234,6 +2268,7 @@ Screens.finalChaser = {
     function pushback(){
       if (over) return;
       clock.pause();
+      f.pushback = { left: PUSHBACK_SECONDS };
       Sound.pushback();
       const letters = LETTERS;
       $('#pb').innerHTML = `
@@ -2257,6 +2292,8 @@ Screens.finalChaser = {
         if (answered) return;
         answered = true;
         pbClock.stop();
+        f.pushback.resolved = true;
+        Judge.reveal(ok ? 'ok' : 'no');
         const correct = q.shuffled.indexOf(q.a);
         $$('#pb-opts .opt').forEach((b, i) => b.classList.add(i === correct ? 'right' : 'wrongpick'));
         if (ok && f.chaserSteps > 0){
@@ -2265,6 +2302,7 @@ Screens.finalChaser = {
         else Sound.wrong();
         addTimeout(() => {
           $('#pb').innerHTML = '';
+          f.pushback = null;
           if (over) return;
           clock.resume();
           ask();
@@ -2272,7 +2310,7 @@ Screens.finalChaser = {
       };
 
       const pbClock = new Clock(PUSHBACK_SECONDS * 1000, {
-        onSecond: s => { const el = $('#pb-n'); if (el) el.textContent = Math.max(0, s); if (s <= 3) Sound.tick(true); },
+        onSecond: s => { if (f.pushback) f.pushback.left = Math.max(0, s); const el = $('#pb-n'); if (el) el.textContent = Math.max(0, s); if (s <= 3) Sound.tick(true); },
         onEnd: () => done(false)
       }).start();
 
@@ -2394,7 +2432,7 @@ const FLOW = {
       host:  saved.hostMode || 'ai',
       ans:   saved.answerMode || 'host',
       cats:  saved.cats || Object.keys(CATS).filter(k => k !== 'fam'),
-      fam:   true
+      fam:   saved.useFamily !== false
     };
   }
 };
@@ -2523,7 +2561,7 @@ Screens.start = {
         <b class="text-lg">על מה נשחק?</b>
         <div class="grid-2" id="s-cats">${Object.keys(RAW).map(catBox).join('')}</div>
         <label class="pick ${famN ? '' : 'opacity-50'}" id="s-fambox">
-          <input type="checkbox" id="s-fam" ${famN ? 'checked' : ''} ${famN ? '' : 'disabled'}>
+          <input type="checkbox" id="s-fam" ${famN && d.fam ? 'checked' : ''} ${famN ? '' : 'disabled'}>
           <span>${CATS.fam.icon} ${esc(CATS.fam.name)}</span>
           <span class="muted text-xs mr-auto">${famN}</span>
         </label>
@@ -2627,6 +2665,7 @@ Screens.start = {
 
     /* ---------- שלב הנושאים ---------- */
     if (step.id === 'topics'){
+      $('#s-fam').addEventListener('change', e => { d.fam = e.currentTarget.checked; });
       bind('[data-cat]', 'change', e => {
         e.currentTarget.closest('label').classList.toggle('on', e.currentTarget.checked);
         d.cats = $$('[data-cat]').filter(c => c.checked).map(c => c.dataset.cat);
@@ -2662,7 +2701,10 @@ Screens.start = {
         d.names = $$('[data-name]').map(x => x.value.trim());
         state.step = i + 1; return go('start');
       }
-      if (step.id === 'topics' && !d.cats.length) return warn('בחרו לפחות נושא אחד.');
+      if (step.id === 'topics'){
+        d.fam = !!($('#s-fam') && $('#s-fam').checked);
+        if (!d.cats.length) return warn('בחרו לפחות נושא אחד.');
+      }
 
       if (i < steps.length - 1){ state.step = i + 1; return go('start'); }
       Screens.start.begin(d);
@@ -2684,13 +2726,13 @@ Screens.start = {
     /* על שני מסכים התשובה תמיד פרטית למנחה — אין טעם להסתיר אותה ממנו */
     state.answerMode = state.device === 'host' ? 'host' : d.ans;
     state.cats       = d.cats;
-    state.useFamily  = !!($('#s-fam') && $('#s-fam').checked) && customQuestions().length > 0;
+    state.useFamily  = !!d.fam && customQuestions().length > 0;
     state.teamBank   = 0;
     buildPool();
 
     Store.set(KEY_SETTINGS, { ...Store.get(KEY_SETTINGS, {}),
       names: d.names, count: d.count, level: d.level,
-      hostMode: d.host, answerMode: d.ans, cats: d.cats });
+      hostMode: d.host, answerMode: d.ans, cats: d.cats, useFamily: d.fam });
 
     Sound.offer();
     go('ready');
@@ -2848,7 +2890,7 @@ function unskew(snap, skew){
 const CODE_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const RELAY_DEFAULT = 'https://ntfy.sh';
 /* הכתובת הפומבית של המשחק — שם אפשר לצרף טלפונים של אחרים */
-const WEB_URL = 'https://raw.githack.com/leviofir800-lgtm/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html';
+const WEB_URL = 'https://raw.githack.com/shneydor/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html';
 
 function newCode(){
   const a = new Uint8Array(4);
@@ -2988,7 +3030,7 @@ function buildSnap(){
     screen: s.screen,
     turn: cur ? cur.name : '',
     chaser: s.chaser ? s.chaser.title : '',
-    players: s.players.map(p => ({ n: p.name, b: p.bank, s: p.status }))
+    players: s.players.map(p => ({ n: p.name, b: p.status === 'safe' ? (p.won || 0) : p.bank, s: p.status }))
   };
   if (s.clock && s.clock.total){
     snap.clock = { ms: Math.max(0, Math.round(s.clock.left)), total: s.clock.total, run: !!s.clock.running };
@@ -3024,7 +3066,7 @@ function buildSnap(){
     snap.steps = { team: f.teamSteps, chaser: f.chaserSteps, head: f.headStart };
     snap.teamBank = s.teamBank;
     if (s.screen === 'finalChaser') snap.status = f.status || '';
-    if (f.pushback) snap.pushback = { q: f.q ? f.q.q : '', opts: f.q ? f.q.shuffled : [] };
+    if (f.pushback) snap.pushback = { q: f.q ? f.q.q : '', opts: f.q ? f.q.shuffled : [], left: f.pushback.left, resolved: !!f.pushback.resolved };
   }
   else if (s.screen === 'results'){
     snap.outcome  = s.outcome || 'none';
@@ -3539,12 +3581,12 @@ function projectorHtml(s){
   if (s.screen === 'chase' && s.board){
     let slots = '';
     for (let i = 0; i <= s.board.home; i++){
-      const cls = i === 0 ? 'chaserrow' : (i === s.board.home ? 'home' : '');
-      const lbl = i === 0 ? 'הצ׳ייסר' : (i === s.board.home ? '🏠 הבית' : String(i));
+      const cls = (i <= s.board.c ? 'territory ' : '') + (i === s.board.p ? 'hot ' : '') + (i === 0 ? 'chaserrow' : (i === s.board.home ? 'home' : ''));
+      const lbl = i === 0 ? 'הצ׳ייסר' : (i === s.board.home ? 'הבנק' : String(i));
       slots += `<div class="slot ${cls}">
-        <div class="lane lane-c">${i === s.board.c ? '<span class="tok tok-c">😈</span>' : ''}</div>
+        <div class="lane lane-c">${i === s.board.c ? '<span class="tok tok-c">צ׳ייסר</span>' : ''}</div>
         <div>${lbl}</div>
-        <div class="lane lane-p">${i === s.board.p ? `<span class="tok tok-p">${esc(s.turn)}</span>` : ''}</div>
+        <div class="lane lane-p">${i === s.board.p ? `<span class="tok tok-p">${money(s.board.prize)}</span>` : ''}</div>
       </div>`;
     }
     const opts = (s.opts || []).map((o, i) => {
@@ -3562,7 +3604,7 @@ function projectorHtml(s){
     return `
     ${head('המרדף האישי', `<span class="chip chip-gold">על הכף: ${money(s.board.prize)}</span>`)}
     <div class="proj-body proj-chase">
-      <div class="board proj-board">${slots}</div>
+      <div class="chase-stage"><div class="board proj-board">${slots}</div></div>
       <div class="proj-q-wrap">
         <div class="row">
           <span class="chip">${esc(s.cat || '')}</span>
@@ -3573,6 +3615,17 @@ function projectorHtml(s){
         <div class="proj-opts">${opts}</div>
       </div>
     </div>`;
+  }
+
+  if (s.screen === 'finalChaser' && s.pushback){
+    return `${head('דחיפה לאחור')}
+      <div class="proj-body proj-center">
+        <div class="proj-big">הצ׳ייסר טעה — התור שלכם!</div>
+        <div class="proj-clock">${Number(s.pushback.left) || 0}</div>
+        <div class="proj-q">${esc(s.pushback.q || '')}</div>
+        <div class="proj-opts">${(s.pushback.opts || []).map((o, i) => `<div class="opt"><span class="badge">${LETTERS[i]}</span>${esc(o)}</div>`).join('')}</div>
+        ${s.pushback.resolved && s.answer ? `<div class="proj-answer">${esc(s.answer)}</div>` : ''}
+      </div>`;
   }
 
   if (s.screen === 'finalTeam' || s.screen === 'finalChaser'){
