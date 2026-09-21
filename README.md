@@ -38,7 +38,7 @@ Future commits deploy automatically when Render has the repository connection
 configured. To roll back, select a previous successful deploy in Render.
 
 משחק טריוויה בעברית בהשראת התוכנית *הצ׳ייסר*, לערב משחקים משפחתי.
-1–8 שחקנים, שלושה סבבים, צ׳ייסר ממוחשב בשלוש רמות קושי — והכול רץ בדפדפן,
+1–12 שחקנים, שלושה סבבים, צ׳ייסר ממוחשב בשלוש רמות קושי — והכול רץ בדפדפן,
 בקובץ HTML אחד, בלי שרת ובלי התקנה.
 
 ## איך מפעילים
