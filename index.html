@@ -1763,6 +1763,7 @@ function go(screen, data){
   APP().scrollIntoView({ block:'start' });
   window.scrollTo(0, 0);
   if (s.mount) s.mount(data);
+  mountNetworkStatus();
 }
 function onKeys(map){
   const h = e => {
@@ -3517,10 +3518,11 @@ const Net = {
   hook(){
     try {
       this.room.onConnection(
-        ok => {
-          this.setStatus(ok ? 'online' : 'connecting');
+        (ok, error) => {
+          this.err = error || null;
+          this.setStatus(error ? 'blocked' : (ok ? 'online' : 'connecting'));
           /* ניתוק קצר הוא דבר רגיל — נותנים לו את אותה שהות לחזור */
-          if (ok) clearTimeout(this._dl); else if (this.kind === 'relay') this.deadline();
+          if (ok || error) clearTimeout(this._dl); else if (this.kind === 'relay') this.deadline();
         },
         e  => { this.err = (e && e.code) || 'error'; this.setStatus('blocked'); }
       );
@@ -3632,7 +3634,9 @@ function rememberCode(c){
 function qs(k){ try { return new URLSearchParams(location.search).get(k); } catch(e){ return null; } }
 function relayBase(){
   const q = qs('relay');
-  return (q && /^https?:\/\//i.test(q)) ? q : RELAY_DEFAULT;
+  if (q && /^https?:\/\//i.test(q)) return q;
+  const hosted = document.querySelector('meta[name="chase-relay"]');
+  return hosted ? new URL(hosted.content, location.origin).href : RELAY_DEFAULT;
 }
 
 /* ============================================================
@@ -3650,6 +3654,7 @@ function RelayTransport(base, code){
   const peersCb = new Set(), connCb = new Set();
   let mine = {}, view = Object.freeze([]), es = null, open = false, dead = false;
   let lastSent = '', lastAt = 0, pending = null, lastHi = 0;
+  let writing = false, writeError = null, retryAt = 0, retryDelay = 1000;
 
   const rebuild = () => {
     const list = [{ peer: me, by: null, isMe: true, sameTab: true, kind: 'viewer',
@@ -3659,22 +3664,48 @@ function RelayTransport(base, code){
     view = Object.freeze(list);
     peersCb.forEach(fn => { try { fn({ peers: view, joined: [], left: [], updated: [] }); } catch(e){} });
   };
+  const reportConnection = () => {
+    connCb.forEach(fn => { try { fn(open && !writeError, writeError); } catch(e){} });
+  };
   const setOpen = ok => {
     if (open === ok) return;
     open = ok;
-    connCb.forEach(fn => { try { fn(ok); } catch(e){} });
+    reportConnection();
   };
 
-  const post = body => {
-    try { fetch(url, { method:'POST', body: JSON.stringify(body) }).catch(() => {}); } catch(e){}
-  };
-  const push = kind => {
-    lastSent = JSON.stringify(mine); lastAt = Date.now();
-    post({ t: kind, id: me, now: lastAt, p: mine });
+  const push = async kind => {
+    if (dead || writing || Date.now() < retryAt) return;
+    writing = true;
+    const sent = JSON.stringify(mine);
+    lastAt = Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(url, { method:'POST',
+        body: JSON.stringify({ t:kind, id:me, now:lastAt, p:JSON.parse(sent) }), signal:controller.signal });
+      if (dead) return;
+      if (!response.ok) throw new Error(response.status === 429 ? 'quota' : 'publish');
+      lastSent = sent;
+      retryAt = 0; retryDelay = 1000;
+      if (writeError) { writeError = null; reportConnection(); }
+    } catch(e) {
+      if (dead) return;
+      writeError = e.message === 'quota' ? 'quota' : 'publish';
+      retryAt = Date.now() + (writeError === 'quota' ? 60000 : retryDelay);
+      retryDelay = Math.min(30000, retryDelay * 2);
+      reportConnection();
+    } finally {
+      clearTimeout(timeout);
+      writing = false;
+      if (!dead && (writeError || JSON.stringify(mine) !== lastSent)) {
+        clearTimeout(pending);
+        pending = setTimeout(() => { pending = null; send(); }, Math.max(MIN_GAP, retryAt - Date.now()));
+      }
+    }
   };
   const send = () => {
-    if (dead) return;
-    if (JSON.stringify(mine) === lastSent) return;     /* שום דבר לא השתנה */
+    if (dead || writing || Date.now() < retryAt) return;
+    if (!writeError && JSON.stringify(mine) === lastSent) return;     /* שום דבר לא השתנה */
     const gap = Date.now() - lastAt;
     if (gap < MIN_GAP){
       if (!pending) pending = setTimeout(() => { pending = null; send(); }, MIN_GAP - gap);
@@ -3720,7 +3751,10 @@ function RelayTransport(base, code){
     if (gone) rebuild();
   }, 5000);
 
-  const bye = () => { dead = true; try { post({ t:'bye', id: me }); } catch(e){} };
+  const bye = () => {
+    dead = true; clearTimeout(pending);
+    try { fetch(url, { method:'POST', body:JSON.stringify({ t:'bye', id:me }), keepalive:true }).catch(() => {}); } catch(e){}
+  };
   window.addEventListener('pagehide', bye);
 
   listen();
@@ -3736,11 +3770,11 @@ function RelayTransport(base, code){
     },
     peers(){ return view; },
     onPeers(fn){ peersCb.add(fn); queueMicrotask(() => { if (peersCb.has(fn)) fn({ peers: view, joined: view, left: [], updated: [] }); }); return () => peersCb.delete(fn); },
-    connected(){ return open; },
-    onConnection(fn){ connCb.add(fn); queueMicrotask(() => { if (connCb.has(fn)) fn(open); }); return () => connCb.delete(fn); },
+    connected(){ return open && !writeError; },
+    onConnection(fn){ connCb.add(fn); queueMicrotask(() => { if (connCb.has(fn)) fn(open && !writeError, writeError); }); return () => connCb.delete(fn); },
     emit(){ return Promise.resolve(); },
     on(){ return () => {}; },
-    close(){ bye(); clearInterval(beat); clearInterval(sweep); if (es) es.close(); }
+    close(){ bye(); window.removeEventListener('pagehide', bye); clearInterval(beat); clearInterval(sweep); if (es) es.close(); }
   };
 }
 
@@ -3846,6 +3880,25 @@ const PREGAME = ['start', 'rules', 'custom', 'lobby'];
 
 function deviceName(){
   return (Store.get(KEY_SETTINGS, {}).deviceName || '').slice(0, 14);
+}
+
+/** Keep connection failures visible during play as well as in the lobby. */
+function mountNetworkStatus(){
+  if (!Net.ready || !['host','screen','chaser'].includes(state.device)) return;
+  const banner = document.createElement('div');
+  banner.id = 'network-status'; banner.setAttribute('role', 'alert');
+  banner.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;z-index:100;padding:12px;background:#75152b;color:white;text-align:center;border:1px solid #ff9aaa;border-radius:8px';
+  const paint = () => {
+    banner.hidden = Net.status === 'online';
+    banner.textContent = Net.err === 'quota'
+      ? 'שירות החיבור הגיע למכסת ההודעות. העדכונים בין המסכים נעצרו.'
+      : Net.status === 'blocked'
+        ? 'אין חיבור בין המסכים. מנסים להתחבר מחדש…'
+        : 'מתחברים מחדש — ייתכן שהתצוגה אינה מעודכנת…';
+  };
+  document.body.appendChild(banner); paint();
+  addCleanup(Net.onStatus(paint));
+  addCleanup(() => banner.remove());
 }
 
 /** כל המכשירים שהכריזו על תפקיד */
@@ -3977,7 +4030,7 @@ Screens.join = {
         </div>`}
 
       <p class="muted text-xs">
-        הקוד פותח ערוץ אצל שירות ממסר חינמי וציבורי. מי שינחש אותו יוכל לצפות במשחק,
+        הקוד מחבר בין המכשירים במשחק. מי שינחש אותו יוכל לצפות במשחק,
         ולכן הקוד מתחלף בכל משחק. התשובות הנכונות לא נשלחות לפני החשיפה.
       </p>
 
