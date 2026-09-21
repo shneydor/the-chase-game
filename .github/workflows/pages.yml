@@ -4,7 +4,7 @@ name: Pages
 
 on:
   push:
-    branches: [claude/the-chase-trivia-game-xzfg2i]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -3,7 +3,7 @@
 ## Deploy on Render
 
 In the Render dashboard, choose **New → Blueprint**, connect `shneydor/the-chase-game`,
-and select branch `claude/the-chase-trivia-game-xzfg2i`. Use the root `render.yaml`
+and select branch `main`. Use the root `render.yaml`
 and deploy the Blueprint. It creates one static site named `the-chase-game`.
 No API key, database, or paid compute instance is needed by the game.
 
@@ -32,7 +32,7 @@ python3 -m http.server 8000
 ```
 
 **הגרסה באינטרנט (זו שמאפשרת לשחק בכמה מכשירים):**
-<https://raw.githack.com/shneydor/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html>
+<https://raw.githack.com/shneydor/the-chase-game/main/index.html>
 
 זה הקישור שאפשר לשלוח לכל אחד — בלי חשבון, בלי התקנה ובלי הגדרות. githack מגיש את הקובץ
 ישירות מהריפו הציבורי ותמיד מהגרסה האחרונה שבענף, כך שאין מה לפרסם ואין מה לתחזק.
