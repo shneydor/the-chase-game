@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: the-chase-game
+    runtime: static
+    repo: https://github.com/shneydor/the-chase-game
+    branch: claude/the-chase-trivia-game-xzfg2i
+    buildCommand: node tests/question-history.cjs && node tools/build-site.mjs
+    staticPublishPath: ./dist
+    autoDeployTrigger: commit
+    envVars:
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
