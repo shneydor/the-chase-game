@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#020718">
 <link rel="preload" as="image" href="assets/studio.png">
-<meta name="description" content="הצ'ייסר — משחק טריוויה משפחתי בהשראת התוכנית, ל-1 עד 4 שחקנים.">
+<meta name="description" content="הצ'ייסר — משחק טריוויה משפחתי בהשראת התוכנית, ל-1 עד 8 שחקנים.">
 <title>הצ'ייסר — משחק טריוויה משפחתי</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3123,6 +3123,7 @@ Screens.results = {
    וכל שלב מוצג רק למי שהוא מתאים לו. מסך הקרנה ומסך צ׳ייסר יוצאים
    מהרצף מיד, בלי שנשאלו על שמות שחקנים.
    ============================================================ */
+const MAX_PLAYERS = 8;
 const FLOW = {
   /* השלבים שרלוונטיים למכשיר הנוכחי */
   steps(){
@@ -3139,8 +3140,8 @@ const FLOW = {
   draft(){
     const saved = Store.get(KEY_SETTINGS, {});
     return {
-      names: saved.names || ['', '', '', ''],
-      count: saved.count || 2,
+      names: Array.from({length: MAX_PLAYERS}, (_, i) => saved.names?.[i] || ''),
+      count: clamp(Math.trunc(Number(saved.count)) || 2, 1, MAX_PLAYERS),
       level: saved.level || 'medium',
       host:  saved.hostMode || 'ai',
       ans:   saved.answerMode || 'host',
@@ -3219,11 +3220,11 @@ Screens.start = {
       <div class="panel panel-pad grid gap-3">
         <b class="text-lg">מי משחק?</b>
         <div class="row" role="group" aria-label="מספר שחקנים">
-          ${[1,2,3,4].map(n => `<button type="button" class="btn ${d.count === n ? 'btn-gold' : ''}" data-count="${n}">${n}</button>`).join('')}
+          ${Array.from({length: MAX_PLAYERS}, (_, i) => i + 1).map(n => `<button type="button" class="btn ${d.count === n ? 'btn-gold' : ''}" data-count="${n}">${n}</button>`).join('')}
           <span class="muted text-sm">שחקנים</span>
         </div>
         <div class="grid gap-2" id="s-players">
-          ${[0,1,2,3].map(i => `
+          ${Array.from({length: MAX_PLAYERS}, (_, i) => i).map(i => `
             <div class="row gap-2 ${i >= d.count ? 'hidden' : ''}" data-prow="${i}">
               <span class="chip chip-player">${i + 1}</span>
               <input class="field flex-1" data-name="${i}" maxlength="14"
