@@ -1,5 +1,21 @@
 # הצ׳ייסר — משחק טריוויה משפחתי
 
+## Deploy on Render
+
+In the Render dashboard, choose **New → Blueprint**, connect `shneydor/the-chase-game`,
+and select branch `claude/the-chase-trivia-game-xzfg2i`. Use the root `render.yaml`
+and deploy the Blueprint. It creates one static site named `the-chase-game`.
+No API key, database, or paid compute instance is needed by the game.
+
+The build runs `node tests/question-history.cjs && node tools/build-site.mjs`
+and publishes `dist/`, containing only the game and its image/audio assets.
+Hosted sharing links use the current site's address. The existing public ntfy
+relay remains responsible for cross-device synchronization.
+
+Render assigns the public HTTPS URL after creation. Future commits to the linked
+branch deploy automatically when Render has the repository connection configured.
+To roll back, select a previous successful deploy in the Render dashboard.
+
 משחק טריוויה בעברית בהשראת התוכנית *הצ׳ייסר*, לערב משחקים משפחתי.
 1–4 שחקנים, שלושה סבבים, צ׳ייסר ממוחשב בשלוש רמות קושי — והכול רץ בדפדפן,
 בקובץ HTML אחד, בלי שרת ובלי התקנה.
