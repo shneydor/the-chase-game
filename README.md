@@ -2,19 +2,40 @@
 
 ## Deploy on Render
 
-In the Render dashboard, choose **New → Blueprint**, connect `shneydor/the-chase-game`,
-and select branch `main`. Use the root `render.yaml`
-and deploy the Blueprint. It creates one static site named `the-chase-game`.
-No API key, database, or paid compute instance is needed by the game.
+The multiplayer game needs the bundled Node web service: the public ntfy relay
+can reject updates after its daily quota is reached, freezing questions and stage
+changes. The web service serves both the game and its own `/relay` endpoint.
+No API key, database, or npm dependencies are needed at runtime.
 
-The build runs `node tests/question-history.cjs && node tools/build-site.mjs`
-and publishes `dist/`, containing only the game and its image/audio assets.
-Hosted sharing links use the current site's address. The existing public ntfy
-relay remains responsible for cross-device synchronization.
+In Render choose **New → Blueprint**, connect `shneydor/the-chase-game`, and use
+branch `main` and the root `render.yaml`. The Blueprint retains the existing
+`the-chase-game` static site and adds the free `the-chase-game-live` Node web
+service. For an existing Blueprint, review/sync it to add the new service.
+Render cannot change a static site's runtime in place; creating another service
+is required. Use the URL Render assigns to **the new web service** on every device.
+The old static site's URL continues to use ntfy until you migrate players to the
+new URL. Do not remove the old site before verifying the new one.
 
-Render assigns the public HTTPS URL after creation. Future commits to the linked
-branch deploy automatically when Render has the repository connection configured.
-To roll back, select a previous successful deploy in the Render dashboard.
+Manual web-service settings:
+- Build: `node tests/question-history.cjs && node tools/build-site.mjs`
+- Start: `node server/start.mjs`
+- Health check: `/healthz`
+- Instance: Free, one instance
+
+Free instances can sleep when idle, so the first visit may take time to start.
+Room presence lives in memory on one instance; do not scale horizontally without
+adding shared room storage. Clients reconnect and republish after a server restart;
+the host browser owns the game state and must stay open.
+
+Local multiplayer: run `node tools/build-site.mjs`, then `node server/start.mjs`,
+and open `http://localhost:8000`. The server injects the local relay address;
+static-only hosts keep the existing ntfy fallback, and `?relay=` still overrides it.
+Run `node tests/hosted-display.mjs` after building to verify advancing questions,
+the chase board and choices, late joining, and failed-update recovery. This test
+requires Playwright and Chromium, like the other browser tests.
+
+Future commits deploy automatically when Render has the repository connection
+configured. To roll back, select a previous successful deploy in Render.
 
 משחק טריוויה בעברית בהשראת התוכנית *הצ׳ייסר*, לערב משחקים משפחתי.
 1–4 שחקנים, שלושה סבבים, צ׳ייסר ממוחשב בשלוש רמות קושי — והכול רץ בדפדפן,

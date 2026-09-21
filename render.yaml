@@ -1,4 +1,5 @@
 services:
+  # Keep the existing static site during migration; Render runtimes are immutable.
   - type: web
     name: the-chase-game
     runtime: static
@@ -6,6 +7,20 @@ services:
     branch: main
     buildCommand: node tests/question-history.cjs && node tools/build-site.mjs
     staticPublishPath: ./dist
+    autoDeployTrigger: commit
+    envVars:
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+
+  - type: web
+    name: the-chase-game-live
+    runtime: node
+    plan: free
+    repo: https://github.com/shneydor/the-chase-game
+    branch: main
+    buildCommand: node tests/question-history.cjs && node tools/build-site.mjs
+    startCommand: node server/start.mjs
+    healthCheckPath: /healthz
     autoDeployTrigger: commit
     envVars:
       - key: SKIP_INSTALL_DEPS
