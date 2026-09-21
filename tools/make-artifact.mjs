@@ -11,12 +11,13 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
+import {embedAssets} from './embed-assets.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src  = path.join(root, 'index.html');
 const out  = process.argv[2] || path.join(root, '.artifact', 'chase-artifact.html');
 
-let html = fs.readFileSync(src, 'utf8');
+let html = embedAssets(fs.readFileSync(src, 'utf8'), root);
 const must = (cond, msg) => { if (!cond){ console.error('✗ ' + msg); process.exit(1); } };
 
 // 1. מעטפת המסמך — מסופקת על ידי Artifact

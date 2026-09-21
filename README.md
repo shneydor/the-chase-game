@@ -16,7 +16,7 @@ python3 -m http.server 8000
 ```
 
 **הגרסה באינטרנט (זו שמאפשרת לשחק בכמה מכשירים):**
-<https://raw.githack.com/leviofir800-lgtm/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html>
+<https://raw.githack.com/shneydor/the-chase-game/claude/the-chase-trivia-game-xzfg2i/index.html>
 
 זה הקישור שאפשר לשלוח לכל אחד — בלי חשבון, בלי התקנה ובלי הגדרות. githack מגיש את הקובץ
 ישירות מהריפו הציבורי ותמיד מהגרסה האחרונה שבענף, כך שאין מה לפרסם ואין מה לתחזק.
@@ -122,7 +122,7 @@ python3 -m http.server 8000
 ### סבב 1 — צבירת כסף
 לכל שחקן/ית 60 שניות. השאלה מוצגת, עונים בקול, ומי שמחזיק במסך לוחץ
 **נכון** / **לא נכון** / **דלג**. כל תשובה נכונה שווה 1,000 ₪ לקופה האישית.
-שאלה שדולגה חוזרת בהמשך הסבב.
+שאלה שדולגה לא חוזרת במשחק הזה. כל שאלה מוצגת פעם אחת בלבד לאורך כל השחקנים והסבבים; אם המאגר נגמר, המשחק מסתיים ללא הכרעה.
 
 **מי רואה את התשובה.** כדי שאפשר יהיה בכלל להחליט אם לאשר, התשובה הנכונה מוצגת
 מתחת לשאלה — כמו הכרטיס שהמנחה מחזיק בתוכנית. בהגדרות בוחרים איך זה עובד:
@@ -177,9 +177,9 @@ python3 -m http.server 8000
 
 ## השאלות
 
-המשחק מגיע עם כ-280 שאלות בעברית בשישה נושאים: ידע כללי, תרבות ישראלית,
-קולנוע וטלוויזיה, מדע וטבע, היסטוריה, וילדים ודיסני. אפשר לבחור אילו נושאים
-ישתתפו במשחק.
+המשחק מגיע עם 913 שאלות בעברית בשמונה נושאים: ידע כללי, תרבות ישראלית,
+קולנוע וטלוויזיה, מדע וטבע, היסטוריה, ילדים ודיסני, חג סוכות ואור. אפשר לבחור אילו נושאים
+ישתתפו במשחק. כשבוחרים באור, כל שחקן/ית פותח/ת את סבב צבירת הכסף בשאלה אחרת מהקטגוריה.
 
 **טריוויה משפחתית:** בתפריט הראשי אפשר להוסיף שאלות משלכם — שאלה, תשובה נכונה
 ושתי תשובות שגויות. השאלות נשמרות ב-`localStorage` של הדפדפן (כלומר במכשיר הזה
@@ -205,6 +205,7 @@ python3 -m http.server 8000
 ## בדיקות
 
 ```bash
+node tests/question-history.cjs # היסטוריית שאלות, דילוגים ושאלות פתיחה
 node tests/smoke.mjs    # משחק שלם על מכשיר אחד
 node tests/lobby.mjs    # לובי וסנכרון בקישור של Claude
 node tests/relay.mjs    # לובי וסנכרון עם קוד הצטרפות
@@ -223,3 +224,10 @@ node tests/relay.mjs    # לובי וסנכרון עם קוד הצטרפות
 
 הבדיקה טוענת את המשחק עם `?fast=1` — דגל פיתוח שמקצר את כל הטיימרים
 (8 שניות לסבב הצבירה במקום 60). שימושי גם כשרוצים לבדוק שינוי ידנית בלי לחכות.
+
+
+## Illuminated studio redesign
+
+The game now includes generated studio and victory scenery under `assets/`, with a live tilted chase board and a broadcast-style question strip. Keep the assets folder beside `index.html` when hosting or downloading the repository. The game remains playable without the images; `tools/make-artifact.mjs` embeds them in an exported artifact.
+
+The redesign also fixes family-question selection across setup screens, premature pushback answer reveals, spectator pushback rendering and banked-prize totals. Asset prompts and generator provenance are in `assets/README.md`. Run `node tests/studio.mjs` for the new regression coverage, alongside the existing smoke, lobby and relay suites. The relay still uses the existing public-topic protocol; host authentication was not redesigned.
